@@ -1,0 +1,2 @@
+# freebsd-templates
+FreeBSD templates
