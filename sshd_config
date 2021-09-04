@@ -1,0 +1,41 @@
+# ciphers
+
+Ciphers aes256-cbc,aes256-ctr,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256,diffie-hellman-group18-sha512,diffie-hellman-group16-sha512,diffie-hellman-group14-sha256
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,umac-64-etm@openssh.com,hmac-sha1-etm@openssh.com
+
+# listen
+
+Port 22
+AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+# logging
+
+SyslogFacility AUTH
+LogLevel INFO
+
+# login options
+
+LoginGraceTime 30s
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 2
+MaxSessions 10
+PubkeyAuthentication yes
+AuthorizedKeysFile      .ssh/authorized_keys
+IgnoreRhosts yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM no
+DisableForwarding yes
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding no
+PermitTunnel no
+
+# network settings
+
+TCPKeepAlive yes
