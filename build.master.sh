@@ -18,7 +18,7 @@ git pull > /usr/src/build.$DATE.git.txt
 ${MAKE} buildworld > /usr/src/build.$DATE.world.txt
 if [ $? -eq 0 ]; then
    echo "Process finished, moving to kernel" >> /usr/src/build.$DATE.world.txt
-   ${MAKE} buildkernel > /usr/src/build.$DATE.kernel.txt
+   ${MAKE} ${KERNCONF_STR} kernel > /usr/src/build.$DATE.kernel.txt
    if [$? -eq 0 ]; then
         echo "Process finished, build complete" >> /usr/src/build.$DATE.kernel.txt
    else
