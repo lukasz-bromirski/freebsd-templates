@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # some hardcoded defaults
-KERNCONF=server
+KERNCONF=server14
 KERNCONF_STR="KERNCONF=${KERNCONF}"
 MAKE_CMD="make"
-MAKE_ARGS="-j4"
+MAKE_ARGS="-j`sysctl -n hw.ncpu`"
 MAKE="$MAKE_CMD ${MAKE_ARGS}"
 DATE=`date +%Y-%m-%d.%H%M%S`
 
