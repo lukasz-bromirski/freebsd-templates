@@ -7,3 +7,4 @@ ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
 awk '$5 >= 3071' /etc/ssh/moduli > /etc/ssh/moduli.safe
 mv /etc/ssh/moduli.safe /etc/ssh/moduli
 
+/etc/rc.d/sshd restart
