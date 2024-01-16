@@ -4,7 +4,7 @@
 KERNCONF=server14
 KERNCONF_STR="KERNCONF=${KERNCONF}"
 MAKE_CMD="make"
-MAKE_ARGS="-j`sysctl -n hw.ncpu`"
+MAKE_ARGS="-j$((`sysctl -n hw.ncpu` * 2))"
 MAKE="$MAKE_CMD ${MAKE_ARGS}"
 DATE=`date +%Y-%m-%d.%H%M%S`
 
