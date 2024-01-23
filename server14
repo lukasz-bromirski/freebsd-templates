@@ -64,6 +64,8 @@ options 	NETGDB			# netgdb(4) client support
 options 	SMP			# Symmetric MultiProcessor Kernel
 device		cpufreq
 
+options         ROUTETABLES=4
+
 device		acpi
 device		smbios
 options 	IOMMU
