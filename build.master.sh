@@ -27,3 +27,5 @@ if [ $? -eq 0 ]; then
 else
    echo "Process failed, check logs" >> /usr/src/build.$DATE.world.txt
 fi
+cd /usr/src
+
