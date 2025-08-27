@@ -44,4 +44,4 @@ PermitTunnel no
 
 TCPKeepAlive yes
 ClientAliveInterval 10s
-ClientAliveCountMax 3s
+ClientAliveCountMax 3
