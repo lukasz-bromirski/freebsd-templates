@@ -47,10 +47,10 @@ mkdir /usr/src
 chown -R root:wheel /usr/src
 chmod -R 0755 /usr/src
 
-echo "Cloning 14-STABLE"
-git clone --depth 1 -b stable/14 https://git.FreeBSD.org/src.git /usr/src
+echo "Cloning 15-STABLE"
+git clone --depth 1 -b stable/15 https://git.FreeBSD.org/src.git /usr/src
 
-echo "Copying server14 configuration file"
-cp server14 /usr/src/sys/amd64/conf/
+echo "Copying server15 configuration file"
+cp server15 /usr/src/sys/amd64/conf/
 
 echo "Done"
