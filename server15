@@ -1,5 +1,5 @@
 cpu		HAMMER
-ident		GENERIC14
+ident		server15
 
 options 	SCHED_ULE		# ULE scheduler
 options 	NUMA			# Non-Uniform Memory Architecture support
