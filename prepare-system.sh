@@ -24,10 +24,9 @@ cp sshd_config /etc/ssh/
 # NTP
 
 echo "Updating NTP to hardened config and proper hosts"
-mv /etc/ntp.conf /etc/ntp.conf.old
-cp ntp.conf /etc/
-cat etc_defaults_rc.conf >> /etc/rc.conf
-/etc/rc.d/ntpd restart
+cp chrony.conf /usr/local/etc/
+service chronyd enable
+service chronyd start
 
 # sysctl
 
@@ -39,7 +38,7 @@ cp sysctl.conf /etc/
 
 echo "Adding proper build files"
 cp make.conf /etc/
-cp src.conf /etc/
+# cp src.conf /etc/
 
 echo "Cleaning up /usr/src"
 rm -rf /usr/src
