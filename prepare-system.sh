@@ -1,11 +1,5 @@
 #!/usr/bin/env sh
 
-# FreeBSD packages
-
-echo "Updating FreeBSD packages to latest"
-mv /etc/pkg/FreeBSD.conf /etc/pkg/FreeBSD.conf.old
-cp FreeBSD.conf /etc/pkg/
-
 # OpenSSH
 
 echo "Updating OpenSSH to hardened and key-only auth"
@@ -38,7 +32,6 @@ cp sysctl.conf /etc/
 
 echo "Adding proper build files"
 cp make.conf /etc/
-# cp src.conf /etc/
 
 echo "Cleaning up /usr/src"
 rm -rf /usr/src
