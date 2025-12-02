@@ -12,7 +12,7 @@ DATE=`date +%Y-%m-%d.%H%M%S`
 rm -rf /usr/obj
 cd /usr/src
 ${MAKE} clean >/dev/null
-git pull > /usr/src/build.$DATE.git.txt
+git pull -4 > /usr/src/build.$DATE.git.txt
 
 # Build process
 /usr/bin/time -h ${MAKE} buildworld > /usr/src/build.$DATE.world.txt
