@@ -22,6 +22,7 @@ LogLevel INFO
 
 # login options
 
+UseDNS no
 LoginGraceTime 10s
 PermitRootLogin no
 StrictModes yes
