@@ -18,8 +18,8 @@ set -u
 KERNCONF="server15"
 SRC="/usr/src"
 OBJ="/usr/obj"
-JOBS="$(( $(sysctl -n hw.ncpu) * 3 ))"   # 3x ncpu, per your original. See note 6.
-MAKE="make -j${JOBS}"                     # word-split on use; do NOT quote $MAKE
+JOBS="$(( $(sysctl -n hw.ncpu) * 2 ))"
+MAKE="make -j${JOBS}"
 DATE="$(date '+%Y-%m-%d.%H%M%S')"
 SUMMARY="${SRC}/build.${DATE}.summary.txt"
 ETCUPDATE_DB="/var/db/etcupdate"          # default etcupdate working dir
