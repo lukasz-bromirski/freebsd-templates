@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # freebsd-buildupdate.sh - build & install FreeBSD from source, unattended.
 #
@@ -11,8 +11,6 @@
 # followed by an unattended etcupdate(8) config merge, then it drops you back
 # into an interactive shell sitting in /usr/src with the summary on screen.
 #
-# Run it inside tmux:   ./freebsd-buildupdate.sh
-# Detach, go for coffee, re-attach: you land in /usr/src looking at the summary.
 
 set -u
 
@@ -21,42 +19,51 @@ KERNCONF="server15"
 SRC="/usr/src"
 OBJ="/usr/obj"
 JOBS="$(( $(sysctl -n hw.ncpu) * 3 ))"   # 3x ncpu, per your original. See note 6.
-MAKE=(make -j"${JOBS}")
+MAKE="make -j${JOBS}"                     # word-split on use; do NOT quote $MAKE
 DATE="$(date '+%Y-%m-%d.%H%M%S')"
 SUMMARY="${SRC}/build.${DATE}.summary.txt"
-ETCUPDATE_DB="/var/db/etcupdate"         # default etcupdate working dir
+ETCUPDATE_DB="/var/db/etcupdate"          # default etcupdate working dir
 
 # ------------------------------------------------------------------- state ---
 ABORT=0
-declare -a NAMES STATES SECS
+ROWS=""                                   # accumulated summary table (no arrays in sh)
+ETC_CONFLICTS="n/a"
 START_ALL="$(date '+%s')"
 
-hms()    { local s=$1; printf '%02dh:%02dm:%02ds' $((s/3600)) $(((s%3600)/60)) $((s%60)); }
-log()    { printf '==> %s  %s\n' "$(date '+%F %T')" "$*"; }
-record() { NAMES+=("$1"); STATES+=("$2"); SECS+=("$3"); }
+hms() {
+    s=$1
+    printf '%02dh:%02dm:%02ds' $((s/3600)) $(((s%3600)/60)) $((s%60))
+}
+log() { printf '==> %s  %s\n' "$(date '+%F %T')" "$*"; }
+
+# add_row "label" "result" seconds  -> append one formatted line to ROWS
+add_row() {
+    _r="$(printf '%-16s %-22s %s' "$1" "$2" "$(hms "$3")")"
+    ROWS="${ROWS}${_r}
+"
+}
 
 # run_step "label" "logfile" cmd args...
 # Runs cmd (stdout+stderr -> logfile), times it, records pass/fail, and sets
 # ABORT on failure so every later step is skipped.
 run_step() {
-    local label="$1" logf="$2"; shift 2
+    label="$1"; logf="$2"; shift 2
     if [ "${ABORT}" -eq 1 ]; then
         log "SKIP   ${label} (earlier step failed)"
-        record "${label}" "SKIPPED" 0
+        add_row "${label}" "SKIPPED" 0
         return 0
     fi
     log "START  ${label}"
-    local s e rc
     s="$(date '+%s')"
     "$@" >"${logf}" 2>&1
     rc=$?
     e="$(date '+%s')"
     if [ "${rc}" -eq 0 ]; then
         log "OK     ${label}  ($(hms $((e-s))))  -> ${logf}"
-        record "${label}" "OK" $((e-s))
+        add_row "${label}" "OK" $((e-s))
     else
         log "FAIL   ${label}  rc=${rc}  ($(hms $((e-s))))  -> ${logf}"
-        record "${label}" "FAILED(rc=${rc})" $((e-s))
+        add_row "${label}" "FAILED(rc=${rc})" $((e-s))
         ABORT=1
     fi
     return "${rc}"
@@ -79,10 +86,11 @@ log "Removing ${OBJ}"
 rm -rf "${OBJ}"
 
 # ----------------------------------------------------------------- build -----
-run_step "git pull"      "${SRC}/build.${DATE}.gitpull.txt"     git -C "${SRC}" pull -4
-run_step "buildworld"    "${SRC}/build.${DATE}.buildworld.txt"   "${MAKE[@]}" buildworld
-run_step "buildkernel"   "${SRC}/build.${DATE}.buildkernel.txt"  "${MAKE[@]}" buildkernel  "KERNCONF=${KERNCONF}"
-run_step "installkernel" "${SRC}/build.${DATE}.installkernel.txt" "${MAKE[@]}" installkernel "KERNCONF=${KERNCONF}"
+# $MAKE is intentionally unquoted so it splits into: make -jN
+run_step "git pull"      "${SRC}/build.${DATE}.gitpull.txt"       git -C "${SRC}" pull -4
+run_step "buildworld"    "${SRC}/build.${DATE}.buildworld.txt"    $MAKE buildworld
+run_step "buildkernel"   "${SRC}/build.${DATE}.buildkernel.txt"   $MAKE buildkernel   "KERNCONF=${KERNCONF}"
+run_step "installkernel" "${SRC}/build.${DATE}.installkernel.txt" $MAKE installkernel "KERNCONF=${KERNCONF}"
 
 # ----------------------------------------------------- pre-world etcupdate ---
 # -p merges only what installworld needs (new uids/groups etc). Harmless on a
@@ -90,24 +98,23 @@ run_step "installkernel" "${SRC}/build.${DATE}.installkernel.txt" "${MAKE[@]}" i
 if [ "${ABORT}" -eq 0 ]; then
     log "START  etcupdate -p (pre-world)"
     if etcupdate -p > "${SRC}/build.${DATE}.etcupdate-p.txt" 2>&1; then
-        record "etcupdate -p" "OK" 0
+        add_row "etcupdate -p" "OK" 0
     else
-        record "etcupdate -p" "WARN(see log)" 0
+        add_row "etcupdate -p" "WARN(see log)" 0
     fi
 fi
 
-run_step "installworld"  "${SRC}/build.${DATE}.installworld.txt" "${MAKE[@]}" installworld
+run_step "installworld"  "${SRC}/build.${DATE}.installworld.txt"  $MAKE installworld
 
 # ----------------------------------------------------- post-world etcupdate --
 # etcupdate is non-interactive by design: it auto-merges everything it can and
 # leaves only true conflicts behind for you to handle later with
 # 'etcupdate resolve'. So this is already "as unattended as possible".
-ETC_CONFLICTS="n/a"
 if [ "${ABORT}" -eq 0 ]; then
     log "START  etcupdate (merge /etc)"
-    etcupdate            > "${SRC}/build.${DATE}.etcupdate.txt" 2>&1
+    etcupdate > "${SRC}/build.${DATE}.etcupdate.txt" 2>&1
     ETC_CONFLICTS="$(etcupdate status 2>/dev/null | grep -c . || true)"
-    record "etcupdate" "OK (conflicts: ${ETC_CONFLICTS})" 0
+    add_row "etcupdate" "OK (conflicts: ${ETC_CONFLICTS})" 0
 fi
 
 # --------------------------------------------------------------- summary -----
@@ -120,11 +127,7 @@ END_ALL="$(date '+%s')"
     echo "logs:    ${SRC}/build.${DATE}.*.txt"
     echo "------------------------------------------------------------"
     printf '%-16s %-22s %s\n' "STEP" "RESULT" "TIME"
-    i=0
-    while [ "${i}" -lt "${#NAMES[@]}" ]; do
-        printf '%-16s %-22s %s\n' "${NAMES[$i]}" "${STATES[$i]}" "$(hms "${SECS[$i]}")"
-        i=$((i+1))
-    done
+    printf '%s' "${ROWS}"
     echo "------------------------------------------------------------"
     printf '%-16s %-22s %s\n' "TOTAL" "" "$(hms $((END_ALL-START_ALL)))"
     if [ "${ABORT}" -eq 1 ]; then
