@@ -29,7 +29,7 @@ LogLevel INFO
 # login options
 
 UseDNS no
-LoginGraceTime 10s
+LoginGraceTime 20s
 PermitRootLogin no
 StrictModes yes
 MaxAuthTries 4
@@ -55,4 +55,4 @@ TCPKeepAlive no
 ClientAliveInterval 120
 ClientAliveCountMax 3
 
-Subsystem       sftp    /usr/libexec/sftp-server
+Subsystem sftp internal-sftp
